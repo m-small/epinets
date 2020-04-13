@@ -5,6 +5,7 @@ using Plots
 using ProgressBars
 using Statistics
 using LinearAlgebra
+using JLD2
 
 #epidemic simulation function
 function episim(net1, net2, ndays::Int64=120, nsims::Int64=50, p2::Float64=1/12, r2::Float64=1/4)
@@ -56,7 +57,7 @@ function episim(net1, net2, ndays::Int64=120, nsims::Int64=50, p2::Float64=1/12,
 
             #########################################
             #switch network after 300 infections
-            if fe[i,j]>300
+            if fe[i,j]>100
                 net=net2 #change network structure
                 r=r2     #change the removal rate
                 p=p2     #and the infection rate
@@ -135,8 +136,8 @@ function meanmaxinfected(A) #maximumload
 end
 
 function parametersweep(swaps,p2s,r2s)
-    ndays=300
-    nsims=5#100
+    ndays=300#0
+    nsims=20#100
 
     ns=length(swaps)
     np=length(p2s)
@@ -167,3 +168,13 @@ function parametersweep(swaps,p2s,r2s)
 
     return mti, mmi, r50
 end
+
+mdeg=4;
+C=[1, 0.99, 0.95, 0.9, 0.8, 0.7, 0.6, 0.5]
+swaps= 1 .- C.^(1 ./ mdeg)
+p2s=[0.02:0.02:0.2;]
+r2s=[0.2:0.05:0.5;]
+
+mti,mmi,r50 = parametersweep(swaps,p2s,r2s)
+
+@save("parameters_swept2020_th100")
