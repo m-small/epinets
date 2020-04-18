@@ -40,16 +40,21 @@ function episim(net1, net2, ndays::Int64=120, nsims::Int64=50, p2::Float64=1/12,
             for v in vertices(net)
                 if state[v]==1
                     for n in all_neighbors(net, v)
+            +
                         if state[n]==3 && rand(Float64).<p
+                            state[v]=2   #susceptible becomes exposed
+                        elseif state[n]==14 && rand(Float64).<p
                             state[v]=2   #susceptible becomes exposed
                         end
                     end
                 elseif state[v]==2 && rand(Float64).<q
-                    state[v]=3 #exposed becomes infectious
+                    state[v]=13 #exposed becomes infectious
                 elseif state[v]==3 && rand(Float64).<r
-                    state[v]=4 #infectious becomes removed
+                    state[v]=14 #infectious becomes removed
                 end
             end
+            state[state.>10] = state[state.>10] .- 10
+
             st[i,j] = count(x->x==1,state)
             ex[i,j] = count(x->x==2,state)
             fe[i,j] = count(x->x==3,state)
