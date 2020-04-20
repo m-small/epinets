@@ -140,11 +140,46 @@ nseeds=5 #
             end
         end
 
+        if length(x)==0
+            println("Error: "*country*", "*state*" not found.")
+            return
+        end
+
         z=Array{Int64,1}(undef,length(x)-4)
 
         for (index, value) in enumerate(x)
             if index>4
                 z[index-4]=value
+            end
+        end
+
+        return z
+    end
+
+
+    function getdataus(locality::String="Santa Fe", state::String="New Mexico", file::String="time_series_covid19_confirmed_US.csv")
+
+        x=[]
+        for row in CSV.File(file)
+            if row[7]==state
+                if length(locality)==0 && row[6]===missing
+                    x=row
+                elseif row[6]==locality
+                    x=row
+                end
+            end
+        end
+
+        if length(x)==0
+            println("Error: "*locality*", "*state*" not found.")
+            return
+        end
+
+        z=Array{Int64,1}(undef,length(x)-11)
+
+        for (index, value) in enumerate(x)
+            if index>11
+                z[index-11]=value
             end
         end
 
