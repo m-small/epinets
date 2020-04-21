@@ -115,6 +115,16 @@ nseeds=5 #
 
     end
 
+    function plotquantilesnk(y,col,qnt::Float64=0.45)
+        nt,ny=size(y)
+        low=Array{Float64,1}(undef,nt)
+        mid=Array{Float64,1}(undef,nt)
+        hig=Array{Float64,1}(undef,nt)
+        for i in 1:nt
+            low[i],mid[i],hig[i] = quantile(y[i,:],[0.5-qnt, 0.5, 0.5+qnt])
+        end
+        plot!(1:nt,mid,grid=false,ribbon=(mid-low,hig-mid),fillalpha=.25,lw=3, seriescolor=col, label=false)
+    end
 
     function plotquantiles(y,col,labl,qnt::Float64=0.45)
         nt,ny=size(y)

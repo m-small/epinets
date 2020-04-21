@@ -36,7 +36,12 @@ epiparam["nseeds"]=5 #probably too many, consider dropping.
 allrs=Dict()
 totItps=Dict()
 tpdays=Dict()
+tpdayman=[0 65 64 63 0 64 0 0]
+@load("done_AU")
 for (i,statename) in enumerate(allstates)
+    if tpdayman[i]==0
+        continue
+    end
     println("Working on ",statename)
     #get relevant data
     gridsize=Int(floor(sqrt(pops[i])))
@@ -45,8 +50,9 @@ for (i,statename) in enumerate(allstates)
     epiparam["pop"]=pop
     y=z[i];
     #compute turning point
-    ddt(z,zt)=count(z->z>0, z[1:zt])+ count(z->z<0, z[zt+1:end])
-    ~,tpday=findmax([ddt(diff(diff(y)),nx) for nx in 1:(ndays-2)])
+    #ddt(z,zt)=count(z->z>0, z[1:zt])+ count(z->z<0, z[zt+1:end])
+    #~,tpday=findmax([ddt(diff(diff(y)),nx) for nx in 1:(ndays-2)])
+    tpday=tpdayman[i] #some of the Australian data is a bit patchy....
     #this is the turning point between exponential growth and decay. totItp total infections at day tpday
     totItp=y[tpday+1]
     #build networks
@@ -79,4 +85,4 @@ for (i,statename) in enumerate(allstates)
     filetitle="done_"*join(split(statename))
     @save filetitle allrs rs z totItps tpdays statename epiparam i
 end
-@save "done_AU" allrs rs z totItps tpdays statename epiparam i
+@save "done_AU" allrs z totItps tpdays statename epiparam

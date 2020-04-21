@@ -82,6 +82,6 @@ for (i,locale) in enumerate(uslocale)
     totItps[locale]=totItp
     tpdays[locale]=tpday
     filetitle="done_"*join(split(locale))
-    @save filetitle allrs rs z totItps tpdays statename epiparam i
+    @save filetitle allrs rs z totItps tpdays usstates uslocale epiparam i
 end
-@save "done_US" allrs rs z totItps tpdays statename epiparam i
+@save "done_US" allrs z totItps tpdays usstates uslocale epiparam

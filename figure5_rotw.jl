@@ -37,8 +37,13 @@ epiparam["nseeds"]=5 #probably too many, consider dropping.
 allrs=Dict()
 totItps=Dict()
 tpdays=Dict()
+@load("done_-Denmark")
 for (i,statename) in enumerate(allstates)
-    println("Working on ",statename)
+    if i<5
+        continue
+    end
+    country=countries[i]
+    println("Working on ",statename,", ",country)
     #get relevant data
     gridsize=Int(floor(sqrt(pops[i])))
     pop=gridsize^2
@@ -77,7 +82,7 @@ for (i,statename) in enumerate(allstates)
     allrs[statename]=deepcopy(rs)
     totItps[statename]=totItp
     tpdays[statename]=tpday
-    filetitle="done_"*join(split(statename))
+    filetitle="done_"*join(split(statename))*"-"*join(split(country))
     @save filetitle allrs rs z totItps tpdays allstates countries epiparam i
 end
-@save "done_ROTW" allrs rs z totItps tpdays allstates countries epiparam i
+@save "done_ROTW" allrs z totItps tpdays allstates countries  epiparam
