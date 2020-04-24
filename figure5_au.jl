@@ -36,12 +36,13 @@ epiparam["nseeds"]=5 #probably too many, consider dropping.
 allrs=Dict()
 totItps=Dict()
 tpdays=Dict()
-tpdayman=[0 65 64 63 0 64 0 0]
-@load("done_AU")
+
+#tpdayman=[0 58 64 58 0 64 0 0]
+#@load("done_AU")
 for (i,statename) in enumerate(allstates)
-    if tpdayman[i]==0
-        continue
-    end
+#    if tpdayman[i]==0
+#        continue
+#    end
     println("Working on ",statename)
     #get relevant data
     gridsize=Int(floor(sqrt(pops[i])))

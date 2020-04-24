@@ -9,9 +9,8 @@ using JLD2, FileIO
 cd("/Users/michael/work/GitHub/COVID-19/csse_covid_19_data/csse_covid_19_time_series")
 
 file="time_series_covid19_confirmed_global.csv"
-#allstates=["Australian Capital Territory" "New South Wales"  "Northern Territory" "Queensland" "South Australia" "Tasmania" "Victoria" "Western Australia"]
-allstates=["Hong Kong" "" "" "" "Shanghai" "Beijing" "" "" ]
-countries=["China" "Singapore" "Finland" "Denmark" "China" "China" "Italy" "Germany"]
+allstates=["Hong Kong" "" "" "" "Shanghai" "Beijing"]
+countries=["China" "Singapore" "Finland" "Denmark" "China" "China"]
 z=Array{Any,1}(undef,length(allstates))
 for (i,state) in enumerate(allstates)
     z[i]=EpiSim.getdata(countries[i],state)
@@ -22,7 +21,7 @@ ddays=propertynames(ddays,4)[5:end]
 ddays=String.(ddays)
 ndays=length(ddays)
 
-pops=[7451000 5639000 5518000 5806000 24280000 21540000 60360000 80300000]
+pops=[7451000 5639000 5518000 5806000 24280000 21540000]
 cd("/Users/michael/work/GitHub/epinets")
 
 #'reasonable' parameters
@@ -37,11 +36,11 @@ epiparam["nseeds"]=5 #probably too many, consider dropping.
 allrs=Dict()
 totItps=Dict()
 tpdays=Dict()
-@load("done_-Denmark")
+#tpdayman=[68 83 58 77 12 4 0 0]
 for (i,statename) in enumerate(allstates)
-    if i<5
-        continue
-    end
+#    if tpdayman[i]==0
+#        continue
+#    end
     country=countries[i]
     println("Working on ",statename,", ",country)
     #get relevant data

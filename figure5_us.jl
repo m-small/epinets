@@ -11,7 +11,7 @@ cd("/Users/michael/work/GitHub/COVID-19/csse_covid_19_data/csse_covid_19_time_se
 usstates=["New York","California","Michigan","Illinois","Connecticut","Pennsylvania","Louisiana","Florida"]
 uslocale=["New York","Los Angeles","Wayne","Cook","Fairfield","Philadelphia","Orleans","Miami-Dade"]
 
-pops=[8398748 3990000 1749343 943332 1584064 343829 2716940]
+pops=[8398748 3990000 1749343 5150233 943332 1584064 391006 2716940]
 
 z=Array{Any,1}(undef,length(usstates))
 for (i,state) in enumerate(usstates)
@@ -38,7 +38,14 @@ epiparam["nseeds"]=5 #probably too many, consider dropping.
 allrs=Dict()
 totItps=Dict()
 tpdays=Dict()
+
+#tpdayman=[67 67 67 67 69 67 67 67]
+tpdayman=[60 60 60 60 60 60 60 60]
+#load("done_Orleans")
 for (i,locale) in enumerate(uslocale)
+#    if tpdayman[i]==0
+#        continue
+#    end
     println("Working on ",locale)
     #get relevant data
     gridsize=Int(floor(sqrt(pops[i])))
