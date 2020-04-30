@@ -24,6 +24,8 @@ module EpiSim
                 state[v] = 14 #infectious becomes removed (state 14 is newly removed)
             end
         end
+        #update the new infected and removed nodes
+        state[state.>10] = state[state.>10] .- 10
     end #of epistep!
 
     function epirealign!(st, ex, fe, rm, i, j, predays, pop)
@@ -98,8 +100,6 @@ module EpiSim
                 #updating the infection states
                 epistep!(state, net, p, q, r)
 
-                #update the new infected and removed nodes
-                state[state.>10] = state[state.>10] .- 10
                 #count the respective totals
                 st[i,j] = count(x->x==1, state)
                 ex[i,j] = count(x->x==2, state)
