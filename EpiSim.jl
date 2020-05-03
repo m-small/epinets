@@ -164,6 +164,18 @@ module EpiSim
         plot!(1:nt,mid,grid=false,ribbon=(mid-low,hig-mid),fillalpha=.25,lw=3, seriescolor=col, label=labl) #updates current plot
     end #of plotquantiles(y,col,labl,qnt)
 
+    function plotqnt(x,y,col,labl,qnt::Float64=0.45)
+        #variant on the above - with x-labels given and aligned
+        nt,ny=size(y)
+        low=Array{Float64,1}(undef,nt)
+        mid=Array{Float64,1}(undef,nt)
+        hig=Array{Float64,1}(undef,nt)
+        for i in 1:nt
+            low[i],mid[i],hig[i] = quantile(y[i,:],[0.5-qnt, 0.5, 0.5+qnt])
+        end
+        plot!(x,mid,grid=false,ribbon=(mid-low,hig-mid),fillalpha=.25,lw=3, seriescolor=col, label=labl)
+    end
+
     function getdata(country::String="Australia", state::String="Western Australia", file::String="time_series_covid19_confirmed_global.csv")
     #load data from the named CSV file for the specified country and state
     #works for the non-US data files
@@ -225,7 +237,44 @@ module EpiSim
     end #of getdataus
 
 
-
+    function epipred(th,St,Et,It,Rt)
+        #find the timestep of the threshold th
+        (lenp,nsims)=size(St)
+        tstep=Array{Int,1}(undef,nsims)
+        nbad=0
+        for i in 1:nsims
+            j=1
+            while It[j,i]+Rt[j,i]<th && j<lenp
+                j += 1
+            end
+            if j>=lenp
+                j = -1
+                nbad += 1
+            elseif j==1
+                j = -1
+                nbad += 1
+            end
+            tstep[i] = j
+        end
+        ndays=lenp-maximum(tstep)
+        Sp=Array{UInt64,2}(undef,ndays,nsims-nbad)
+        Ep=Array{UInt64,2}(undef,ndays,nsims-nbad)
+        Ip=Array{UInt64,2}(undef,ndays,nsims-nbad)
+        Rp=Array{UInt64,2}(undef,ndays,nsims-nbad)
+        i=1
+        ii=1
+        while ii<=nsims
+            if tstep[ii] > 0
+                Sp[:,i] = St[tstep[ii]:(tstep[ii]+ndays-1) , ii]
+                Ep[:,i] = Et[tstep[ii]:(tstep[ii]+ndays-1) , ii]
+                Ip[:,i] = It[tstep[ii]:(tstep[ii]+ndays-1) , ii]
+                Rp[:,i] = Rt[tstep[ii]:(tstep[ii]+ndays-1) , ii]
+                i += 1
+            end
+            ii += 1
+        end
+        return (Sp,Ep,Ip,Rp)
+    end
 
 
 ###############################################################################
