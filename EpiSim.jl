@@ -198,6 +198,7 @@ module EpiSim
             low[i],mid[i],hig[i] = quantile(y[i,:],[0.5-qnt, 0.5, 0.5+qnt])
         end
         plot!(1:nt,mid,grid=false,ribbon=(mid-low,hig-mid),fillalpha=.25,lw=3, seriescolor=col, label=false) #updates current plot
+    #    return low, mid, hig
     end #of plotquantiles(y,col,qnt::Float64)
 
     function plotquantiles(y,col,labl,qnt::Float64=0.45)
@@ -211,6 +212,7 @@ module EpiSim
             low[i],mid[i],hig[i] = quantile(y[i,:],[0.5-qnt, 0.5, 0.5+qnt])
         end
         plot!(1:nt,mid,grid=false,ribbon=(mid-low,hig-mid),fillalpha=.25,lw=3, seriescolor=col, label=labl) #updates current plot
+    #    return low, mid, hig
     end #of plotquantiles(y,col,labl,qnt)
 
     function plotqnt(x,y,col,labl,qnt::Float64=0.45)
