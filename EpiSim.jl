@@ -327,6 +327,19 @@ module EpiSim
         return (Sp,Ep,Ip,Rp)
     end
 
+    function rewire!(net,p)
+        #rewire edges of a graph with probability p
+        vert=vertices(net)
+        for edg in edges(net) #just do it the slow and literal way - we've got time
+            #assuming that the iterator is created at the start of the loop, and the new edges don't get added on.....
+            if rand(1)[1]<p
+                #rewire
+                rem_edge!(net,edg)
+                add_edge!(net,edg.src,rand(vert[vert.!=edg.src]))
+            end
+        end
+        return net
+    end
 
 ###############################################################################
 ###############################################################################
