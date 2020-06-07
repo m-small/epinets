@@ -1,6 +1,6 @@
 module EpiSim
 
-    export episim, plotquantiles, getdata
+    export episim, plotquantiles, getdata, episimprotest
     using LightGraphs, ProgressBars, CSV, Plots, Statistics
 
     function epistep!(state, net, p, q, r)
@@ -141,7 +141,7 @@ module EpiSim
 
 
     function episim(net, epiparam, ndays::Int64=180, nsims::Int64=50)
-        #single changepoint model
+        #no changepoint model
         #feth is the threhold to switch between growth and control - replace net1 with net2
 
         #epidemic parameters
@@ -187,6 +187,82 @@ module EpiSim
         return st, ex, fe, rm
 
     end #episim
+
+
+    function episimprotest(net1, net2, epiparam, days1::Int64=3, days2::Int64=200, nsims::Int64=50)
+        #single changepoint model
+        #days1 is the number of days to run the first model net1
+        #days2 is the number of days to run the second model
+        #transmission parameters epiparam do not change
+
+        #epidemic parameters
+        pop=epiparam["pop"]         #population - assumed to be a square number
+        p0=epiparam["p0"]           #rate p for first phase
+        q=epiparam["q"]             #rate q (latency) fixed throughout
+        r0=epiparam["r0"]           #rate r for first phase
+        nseeds=epiparam["nseeds"]   #number of infected nodes to start with
+        # if nseeds is a vector then use nseeds[i] on simulation number i.
+        if length(nseeds)>1
+            nsims=length(nseeds)
+        end
+
+        #initialise and get set to track the various tallies
+        ndays=days1+days2
+        st=Array{UInt64,2}(undef,ndays,nsims)
+        ex=Array{UInt64,2}(undef,ndays,nsims)
+        fe=Array{UInt64,2}(undef,ndays,nsims)
+        rm=Array{UInt64,2}(undef,ndays,nsims)
+
+        iter = ProgressBar(1:nsims) #everyone loves a good progress bar
+
+        #main iteratarion loop nsims simulations
+        for j in iter
+            #active contact network is net1 to start
+            net=net1
+            #initilise the rate parameters
+            r=r0
+            p=p0
+
+            #reinitialise the state vector
+            state=Array{Int8,2}(undef,1,pop) #this is a bit wasteful, there must be a better categorical way to do this...
+            state[1:pop].=1;
+            if length(nseeds)>1
+                state[rand((1:pop),(1,nseeds[j]))].=2; #seeds should be exposed cases
+            end
+
+            i=1
+            notdoneyet=true
+            #loop for a single epidemic time course (total duration predays+postdays)
+            while i<=ndays
+
+                #updating the infection states
+                epistep!(state, net, p, q, r)
+
+                #count the respective totals
+                st[i,j] = count(x->x==1, state)
+                ex[i,j] = count(x->x==2, state)
+                fe[i,j] = count(x->x==3, state)
+                rm[i,j] = count(x->x==4, state)
+
+                ##################################################################################
+                #switch network after ndays1 infections - this is the change-point cludge
+                ##################################################################################
+                if i==days1
+                    net=net2 #change network structure
+                end
+                ##################################################################################
+                ##################################################################################
+                ##################################################################################
+
+                i += 1  #done one more day
+
+            end
+        end
+
+        return st, ex, fe, rm
+
+    end #episimprotest
+
 
     function plotquantiles(y,col,qnt::Float64=0.45)   #no nk overloading the method should work...
         #plot an infection curve with qnt*2 confidence intervals - no label

@@ -1,7 +1,7 @@
 #module ContactModels
 
 #	export fullmixing, limitpop, limitmix, isolation, socialdist, nomassmix, covidsafe, rewire!
-#	using LightGraphs
+	using LightGraphs
 
 	function fullmixing(pop)
 	    #model a population of pop fully mixed nodes
@@ -36,7 +36,7 @@
 	    #redistribute them elsewhere
 	    vert=vertices(net)
 	    for i in 1:nlost #will complain if there are not enough edges to add back in
-	        verts=vert[degree(net).<(gth-1)] 
+	        verts=vert#[degree(net).<(gth-1)] 
 	        v1=rand(verts)
 	        v2=v1
 	        while v2==v1
@@ -46,13 +46,13 @@
 	        add_edge!(net,edg)
 	    end
 	    #maybe a few short, add those too
-	    while ne(net)<nedges
-	        edg=Edge(rand(verts),rand(verts))
-	        while edg in edges(net)
-	            edg=Edge(rand(verts),rand(verts))
-	        end
-	        add_edge!(net,edg)
-	    end
+#	    while ne(net)<nedges
+#	        edg=Edge(rand(verts),rand(verts))
+#	        while edg in edges(net)
+#	            edg=Edge(rand(verts),rand(verts))
+#	        end
+#	        add_edge!(net,edg)
+#	    end
 	    return net
 	end
 
