@@ -139,7 +139,6 @@ module EpiSim
 
     end #episim
 
-
     function episim(net, epiparam, ndays::Int64=180, nsims::Int64=50)
         #no changepoint model
         #feth is the threhold to switch between growth and control - replace net1 with net2
@@ -188,6 +187,57 @@ module EpiSim
 
     end #episim
 
+    function episimcom(net, locpop, epiparam, ndays::Int64=180, nsims::Int64=50)
+        #no changepoint model, with communities (locpop[i]:locpop[i+1]-1) are in community i
+        #that is, if popi is the population in town i, then locpop=cumsum([1 popi]) and locpop[i]==epiparam["pop"]
+
+        #epidemic parameters
+        pop=epiparam["pop"]         #population - assumed to be a square number
+        p=epiparam["p0"]           #rate p for first phase
+        q=epiparam["q"]             #rate q (latency) fixed throughout
+        r=epiparam["r0"]           #rate r for first phase
+        nseeds=epiparam["nseeds"]   #number of infected nodes to start with
+
+        ncat=length(locpop)-1
+
+        #initialise and get set to track the various tallies
+        st=Array{UInt64,3}(undef,ndays,nsims,ncat)
+        ex=Array{UInt64,3}(undef,ndays,nsims,ncat)
+        fe=Array{UInt64,3}(undef,ndays,nsims,ncat)
+        rm=Array{UInt64,3}(undef,ndays,nsims,ncat)
+
+        iter = ProgressBar(1:nsims) #everyone loves a good progress bar
+        #main iteratarion loop nsims simulations
+        for j in iter
+            #reinitialise the state vector
+            state=Array{Int8,2}(undef,1,pop) #this is a bit wasteful, there must be a better categorical way to do this...
+            state[1:pop].=1;
+            state[rand((1:(locpop[2]-1)),(1,nseeds))].=2; #seeds should be exposed cases
+
+            i=1
+            #loop for a single epidemic time course (total duration predays+postdays)
+            while i<=(ndays)
+
+                #updating the infection states
+                epistep!(state, net, p, q, r)
+
+                #count the respective totals in the corresponding categories
+                for k in 1:ncat
+                    st[i,j,k] = count(x->x==1, state(locpop[i]:locpop[i+1]-1))
+                    ex[i,j,k] = count(x->x==2, state(locpop[i]:locpop[i+1]-1))
+                    fe[i,j,k] = count(x->x==3, state(locpop[i]:locpop[i+1]-1))
+                    rm[i,j,k] = count(x->x==4, state(locpop[i]:locpop[i+1]-1))
+                end
+
+
+                i += 1  #done one more day
+
+            end
+        end
+
+        return st, ex, fe, rm
+
+    end #episim
 
     function episimprotest(net1, net2, epiparam, days1::Int64=3, days2::Int64=200, nsims::Int64=50)
         #single changepoint model
