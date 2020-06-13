@@ -223,10 +223,10 @@ module EpiSim
 
                 #count the respective totals in the corresponding categories
                 for k in 1:ncat
-                    st[i,j,k] = count(x->x==1, state(locpop[i]:locpop[i+1]-1))
-                    ex[i,j,k] = count(x->x==2, state(locpop[i]:locpop[i+1]-1))
-                    fe[i,j,k] = count(x->x==3, state(locpop[i]:locpop[i+1]-1))
-                    rm[i,j,k] = count(x->x==4, state(locpop[i]:locpop[i+1]-1))
+                    st[i,j,k] = count(x->x==1, state[locpop[k]:locpop[k+1]-1])
+                    ex[i,j,k] = count(x->x==2, state[locpop[k]:locpop[k+1]-1])
+                    fe[i,j,k] = count(x->x==3, state[locpop[k]:locpop[k+1]-1])
+                    rm[i,j,k] = count(x->x==4, state[locpop[k]:locpop[k+1]-1])
                 end
 
 

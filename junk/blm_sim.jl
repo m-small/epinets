@@ -8,7 +8,7 @@ cd("/Users/michael/work/GitHub/COVID-19/csse_covid_19_data/csse_covid_19_time_se
 file="time_series_covid19_confirmed_global.csv"
 allstates=["Australian Capital Territory" "New South Wales"  "Northern Territory" "Queensland" "South Australia" "Tasmania" "Victoria" "Western Australia"]
 allcities=["Canberra" "Sydney" "Darwin" "Brisbane" "Adelaide" "Hobart" "Melbourne" "Perth"]
-z=Array{Any,1}
+z=[]
 for state in allstates
     z=push!(z,EpiSim.getdata("Australia",state))
 end
