@@ -6,6 +6,10 @@
 	function fullmixing(pop)
 	    #model a population of pop fully mixed nodes
 	    #a BA scale-free network model, mean degree 4
+	    if pop<5
+	    	net=complete_graph(pop)
+	    	return net
+	    end
 	    net=barabasi_albert(pop, 3, 2)
 	    #need to add six extra edges
 	    verts=vertices(net)
@@ -52,7 +56,7 @@
 #	            edg=Edge(rand(verts),rand(verts))
 #	        end
 #	        add_edge!(net,edg)
-#	    end
+#nomass	    end
 	    return net
 	end
 
