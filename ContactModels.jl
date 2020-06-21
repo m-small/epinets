@@ -95,6 +95,9 @@
 	function nomassmix(pop)
 	    #model a population of pop fully mixed nodes - no superspreaders
 	    #a ER random graph model, mean degree 4
+	    if pop<5
+	    	return complete_graph(pop)
+	    end
 	    return erdos_renyi(pop, 2*pop)
 	end
 
