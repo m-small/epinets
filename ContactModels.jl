@@ -126,5 +126,111 @@
 	    return net
 	end
 
+	function similaritytown(df,i,j)
+	    # similaritytown(df,i,j)
+	    # Define a "similarity" between two locations. This code is an ad-hoc rule that is an 
+	    # attempt to model the amount of movement between discrete regions. Dataframe df is 
+	    # assumed to be in the "Orlando format" as illustrated above.
+	    bonus1=100  #effectively, the larger the bonus, the more we include non-indigeneos travel.
+	    bonus2=10   #bonus1 is for towns in the same region, bonus2 for the same LGA
+	    if i<j
+	        score=similaritytown(df,j,i)
+	        return score
+	    elseif i<=majorlocalities && j<=majorlocalities
+	        x1= convert(Matrix{Int}, df[2*i-1:2*i,6:end])
+	        x2= convert(Matrix{Int}, df[2*j-1:2*j,6:end])
+	        languagesimilarity=x1[:]'*x2[:]        #or not
+	        regionbonus= (df[2*i,3]==df[2*j,3])*bonus1
+	    elseif i>majorlocalities && j>majorlocalities
+	        x1= convert(Vector{Int}, df[majorlocalities+i,6:end])
+	        x2= convert(Vector{Int}, df[majorlocalities+j,6:end])
+	        languagesimilarity=x1[:]'*x2[:]        #or not
+	        regionbonus= (df[i+majorlocalities,3]==df[j+majorlocalities,3])*bonus1 #same region
+	        regionbonus= regionbonus + (df[i+majorlocalities,5]==df[j+majorlocalities,5])*bonus2 #and same locality
+	    else
+	        x1= convert(Vector{Int}, df[majorlocalities+i,6:end])
+	        x1= reshape(x1,1,length(x1))
+	        x2= convert(Matrix{Int}, df[2*j-1:2*j,6:end])
+	        languagesimilarity= (sum(x2,dims=1) * x1[:])[1]      #or not
+	        regionbonus= (df[i+majorlocalities,3]==df[2*j,3])*bonus1 #same region
+	    end
+	    score=Int(floor(sqrt(languagesimilarity+regionbonus))) # sqrt? why not?
+	    return score
+	end
+
+	function buildstate(statedata,netbuilder, p, smalltown::Bool=true, richclub::Bool=false)
+	    # buildstate(statedata, netbuilder, p)
+	    ##############################################################################
+	    #statedata is a csv table loaded from the structure /format above (AKA the Orlando Format)
+	    #netbuilder is the intra-locale network construction rule (a function)
+	    #smalltown==true will bias toward travel to/from remote communities, otherwise travel will be predominantly to the largest places
+	    #richclub==true preferences "popular" (hihgly connected) nodes as travellers
+	    ##############################################################################
+	    # 
+	    #extract the data from CSV table
+	    #majorlocalities=58
+	    brk=majorlocalities*2
+	    locale=[statedata[1:2:brk,1]; statedata[brk+1:end,1]]
+	    townpop1=wapopint=parse.(Int, replace.(statedata[1:2:brk,2], r","=> ""))
+	    townpop2=wapopint=parse.(Int, replace.(statedata[brk+1:end,2], r","=> ""))
+	    popl=[townpop1; townpop2]
+	    npl=length(popl)
+	    net=SimpleGraph() #empty graph
+	    transit=Array{Int64,2}(undef,npl,npl) #number of transits beween locale[i] and locale[j]
+	    #################################
+	    # Population connectivity within regions
+	    #
+	    for (i,town) in enumerate(locale)
+	        println("Adding ",town," (population: ",popl[i],")")
+	        #add the intralocale links
+	        if popl[i]>0
+	            netadd=netbuilder(popl[i]) #use the preassigned method to add the new component
+	            net=blockdiag(net,netadd)
+	        end
+	        #compute the amount of transit
+	        for j in 1:(i-1) #number of transit between here and every other previous part
+	        transit[i,j] = Int(floor(similaritytown(statedata,i,j)))
+	            transit[j,i]=transit[i,j]
+	        end
+	        transit[i,i]=0
+	    end
+	    #################################
+	    # Population connectivity between regions
+	    #    
+	    rr=[0; cumsum(popl)]
+	#    tpopl=sum(sqrt.(popl))/length(popl)
+	    tpopl=sum(popl)/sum(sqrt.(popl))
+	    nedges_add = 0
+	    for i in 1:npl
+	        #do one of the following two lines
+	        if smalltown
+	            addlink=Int(floor(minimum([popl[i],tpopl*p*sqrt(popl[i])]))) #biased to small communities -  testing the effect of the hypothesis of more movement in these communities
+	        else
+	            addlink=Int(floor(p*popl[i])) #unbiased
+	        end
+	        edg1=rand(collect(rr[i]+1:rr[i+1]),addlink)
+	        destpdf=transit[i,:] .* maximum([popl[i]./popl[:];1])
+	        destpdf[i]=0
+	        edg2 = sample(1:npl, Weights(destpdf) , addlink)
+	        for k in 1:addlink
+	            rrs=rr[edg2[k]]+1:rr[edg2[k]+1]
+	            #do one of the following two lines
+	            if richclub
+	                edg2k = sample(rrs, Weights(degree(net[rrs]))) #biased by target degree
+	            else
+	                edg2k = rand(collect(rrs))   #random sample of the relevant community
+	            end
+	            edg2[k] = edg2k
+	        end
+	        #need to do it twice, so that the node degrees don't grow   
+	        for k in 1:addlink
+	                    add_edge!(net,edg1[k],edg2[k]) #this is grossly inefficient
+	                    nedges_add += 1
+	        end
+	    end
+	    #all done
+	    println(" $nedges_add edges added")
+	    return net, transit, locale, popl, nedges_add
+	end
 #end #of module
 
