@@ -1,7 +1,7 @@
 #module ContactModels
 
 #	export fullmixing, limitpop, limitmix, isolation, socialdist, nomassmix, covidsafe, rewire!
-	using LightGraphs
+	using LightGraphs, ProgressBars
 
 	function fullmixing(pop)
 	    #model a population of pop fully mixed nodes
@@ -126,6 +126,51 @@
 	    return net
 	end
 
+	function gc_dist(pos1,pos2)
+		π180=π/180
+		ϕ1=pos1[2]*π180
+		ϕ2=pos2[2]*π180
+		θ1=pos1[1]*π180
+		θ2=pos2[1]*π180
+		d=( sin((ϕ2-ϕ1)/2) )^2 + cos(ϕ1)*cos(ϕ2)*( sin((θ2-θ1)/2) )^2
+		d=asin(sqrt(d))
+		d=2*6378*d
+		d=d+1
+		return d
+	end
+
+	function similaritytown(df,i,j,posn)
+	    # similaritytown(df,i,j)
+	    # Define a "similarity" between two locations. This code is an ad-hoc rule that is an 
+	    # attempt to model the amount of movement between discrete regions. Dataframe df is 
+	    # assumed to be in the "Orlando format" as illustrated above.
+	    bonus1=1000  #effectively, the larger the bonus, the more we include non-indigeneos travel.
+	    bonus2=10   #bonus1 is for towns in the same region, bonus2 for the same LGA
+	    if i<j
+	        score=similaritytown(df,j,i,posn)
+	        return score
+	    elseif i<=majorlocalities && j<=majorlocalities
+	        x1= convert(Matrix{Int}, df[2*i-1:2*i,6:end])
+	        x2= convert(Matrix{Int}, df[2*j-1:2*j,6:end])
+	        languagesimilarity=x1[:]'*x2[:]        #or not
+	        regionbonus= bonus1/gc_dist(posn[i,:],posn[j,:])
+	    elseif i>majorlocalities && j>majorlocalities
+	        x1= convert(Vector{Int}, df[majorlocalities+i,6:end])
+	        x2= convert(Vector{Int}, df[majorlocalities+j,6:end])
+	        languagesimilarity=x1[:]'*x2[:]        #or not
+	        regionbonus= bonus1/gc_dist(posn[i,:],posn[j,:]) #same region
+	        regionbonus= regionbonus + (df[i+majorlocalities,5]==df[j+majorlocalities,5])*bonus2 #and same locality
+	    else
+	        x1= convert(Vector{Int}, df[majorlocalities+i,6:end])
+	        x1= reshape(x1,1,length(x1))
+	        x2= convert(Matrix{Int}, df[2*j-1:2*j,6:end])
+	        languagesimilarity= (sum(x2,dims=1) * x1[:])[1]      #or not
+	        regionbonus= bonus1/gc_dist(posn[i,:],posn[j,:])#same region
+	    end
+	    score=Int(floor(sqrt(languagesimilarity+regionbonus))) # sqrt? why not?
+	    return score
+	end
+
 	function similaritytown(df,i,j)
 	    # similaritytown(df,i,j)
 	    # Define a "similarity" between two locations. This code is an ad-hoc rule that is an 
@@ -158,7 +203,27 @@
 	    return score
 	end
 
-	function buildstate(statedata,netbuilder, p, smalltown::Bool=true, richclub::Bool=false)
+
+	function vulnerability(It)
+	    (ndays, nsims, nlocs) = size(It)
+	    vln=Array{Float64,2}(undef,nlocs,nsims)
+	    for i in 1:nlocs
+	        for j in 1:nsims
+	            idx=findall(x -> x>0, It[:,j,i])
+	            if isempty(idx)
+	                vln[i,j]=Inf
+	            else
+	                vln[i,j]=minimum(idx)
+	            end
+	        end
+	    end
+	    vln=median(vln,dims=2)
+	    vln=vln./vln[3] #median vulnerability comapred to Gero
+	    return vln
+	end
+
+
+	function buildstate(statedata,netbuilder, p, smalltown::Bool=true, richclub::Bool=false, posn::Any=false)
 	    # buildstate(statedata, netbuilder, p)
 	    ##############################################################################
 	    #statedata is a csv table loaded from the structure /format above (AKA the Orlando Format)
@@ -189,7 +254,11 @@
 	        end
 	        #compute the amount of transit
 	        for j in 1:(i-1) #number of transit between here and every other previous part
-	        transit[i,j] = Int(floor(similaritytown(statedata,i,j)))
+	        	if typeof(posn)==Bool
+	        		transit[i,j] = Int(floor(similaritytown(statedata,i,j)))
+	            else
+	            	transit[i,j] = Int(floor(similaritytown(statedata,i,j,posn)))
+	            end
 	            transit[j,i]=transit[i,j]
 	        end
 	        transit[i,i]=0
@@ -201,7 +270,11 @@
 	#    tpopl=sum(sqrt.(popl))/length(popl)
 	    tpopl=sum(popl)/sum(sqrt.(popl))
 	    nedges_add = 0
-	    for i in 1:npl
+	    println("Connecting towns")
+	    iter = ProgressBar(1:npl) #everyone loves a good progress bar
+
+        #main iteratarion loop nsims simulations
+	    for i in iter
 	        #do one of the following two lines
 	        if smalltown
 	            addlink=Int(floor(minimum([popl[i],tpopl*p*sqrt(popl[i])]))) #biased to small communities -  testing the effect of the hypothesis of more movement in these communities
