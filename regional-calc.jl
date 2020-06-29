@@ -69,7 +69,7 @@ end
 ######## build contact graph 
 pt=0.01 #probability of travel/proportion of population connecting multiple regions
 ndays=210
-nsims=25
+nsims=250
 locpop=cumsum([1; popl],dims=1)
 
 vresult=Array{Float64,2}(undef,length(contact)*4,length(popl))
