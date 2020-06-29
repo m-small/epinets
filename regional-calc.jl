@@ -1,4 +1,5 @@
-using LightGraphs, Plots, GraphPlot, Compose, Random, StatsBase, CSV, JLD2, FileIO
+using LightGraphs, Plots, GraphPlot, Compose, Random, StatsBase, CSV, JLD2, FileIO, Statistics
+
 
 include("ContactModels.jl")
 include("EpiSim.jl")
@@ -68,30 +69,35 @@ end
 ######## build contact graph 
 pt=0.01 #probability of travel/proportion of population connecting multiple regions
 ndays=210
-nsims=500
+nsims=25
 locpop=cumsum([1; popl],dims=1)
 
 vresult=Array{Float64,2}(undef,length(contact)*4,length(popl))
 
 i=1
-for cfunc in contact
+for (ci,cfunc) in enumerate(contact)
 	for smallc in [true false]
 		for prefpa in [true false]
 			global i
-			filename="regional_"*labels[i]*"_"*b2s(smallc)*b2s(prefpa)*"_p"*string(pt*100)*".jld"
+			filename="regional_"*labels[ci]*"_"*b2s(smallc)*b2s(prefpa)*"_p"*string(Int(0.01*100); base=10,pad=2)*".jld"
 			net, transit, locale, popl, nedges_added = 
 			                 buildstate(wapop, cfunc, pt, smallc, prefpa)
 			St,Et,It,Rt = 
 					EpiSim.episimcom(net, locpop, epiparam, ndays, nsims) 
 			vv=vulnerability(It)
-			vresult[indx,:]=vv'
-			i += 1
+			vresult[i,:]=vv'
 			save(filename,"St",St,"Et",Et,"It",It,"Rt",Rt) 
 			@save "regional_progress.jld"
+			save("regional_output.jld","vuln",vresult)
 			println("Done $i of $(length(contact)*4)")
+			i += 1
 		end
 	end
 end
+
+exit()
+
+
 
 
 
