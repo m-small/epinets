@@ -81,12 +81,12 @@ for (ci,cfunc) in enumerate(contact)
 			global i
 			filename="regional_"*labels[ci]*"_"*b2s(smallc)*b2s(prefpa)*"_p"*string(Int(0.01*100); base=10,pad=2)*".jld"
 			net, transit, locale, popl, nedges_added = 
-			                 buildstate(wapop, cfunc, pt, smallc, prefpa)
+			                 buildstate(wapop, cfunc, pt, smallc, prefpa, posn)
 			St,Et,It,Rt = 
 					EpiSim.episimcom(net, locpop, epiparam, ndays, nsims) 
 			vv=vulnerability(It)
 			vresult[i,:]=vv'
-			save(filename,"St",St,"Et",Et,"It",It,"Rt",Rt) 
+		#	save(filename,"St",St,"Et",Et,"It",It,"Rt",Rt) 
 			@save "regional_progress.jld"
 			save("regional_output.jld","vuln",vresult)
 			println("Done $i of $(length(contact)*4)")

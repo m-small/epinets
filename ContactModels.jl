@@ -229,7 +229,7 @@
 	    #statedata is a csv table loaded from the structure /format above (AKA the Orlando Format)
 	    #netbuilder is the intra-locale network construction rule (a function)
 	    #smalltown==true will bias toward travel to/from remote communities, otherwise travel will be predominantly to the largest places
-	    #richclub==true preferences "popular" (hihgly connected) nodes as travellers
+	    #richclub==true preferences "popular" (highly connected) nodes as travellers
 	    ##############################################################################
 	    # 
 	    #extract the data from CSV table
@@ -246,7 +246,7 @@
 	    # Population connectivity within regions
 	    #
 	    for (i,town) in enumerate(locale)
-	        println("Adding ",town," (population: ",popl[i],")")
+	    #    println("Adding ",town," (population: ",popl[i],")")
 	        #add the intralocale links
 	        if popl[i]>0
 	            netadd=netbuilder(popl[i]) #use the preassigned method to add the new component
@@ -277,6 +277,7 @@
 	    for i in iter
 	        #do one of the following two lines
 	        if smalltown
+	        	println("Small towns favoured")
 	            addlink=Int(floor(minimum([popl[i],tpopl*p*sqrt(popl[i])]))) #biased to small communities -  testing the effect of the hypothesis of more movement in these communities
 	        else
 	            addlink=Int(floor(p*popl[i])) #unbiased
@@ -289,6 +290,7 @@
 	            rrs=rr[edg2[k]]+1:rr[edg2[k]+1]
 	            #do one of the following two lines
 	            if richclub
+	            	println("Preferential attachment on")
 	                edg2k = sample(rrs, Weights(degree(net[rrs]))) #biased by target degree
 	            else
 	                edg2k = rand(collect(rrs))   #random sample of the relevant community
