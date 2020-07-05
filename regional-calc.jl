@@ -87,8 +87,8 @@ for (ci,cfunc) in enumerate(contact)
 			vv=vulnerability(It)
 			vresult[i,:]=vv'
 		#	save(filename,"St",St,"Et",Et,"It",It,"Rt",Rt) 
-			@save "regional_progress.jld"
-			save("regional_output.jld","vuln",vresult)
+			@save "regional_progress_3.jld"
+			save("regional_output_3.jld","vuln",vresult)
 			println("Done $i of $(length(contact)*4)")
 			i += 1
 		end

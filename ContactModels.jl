@@ -245,6 +245,11 @@
 	    #################################
 	    # Population connectivity within regions
 	    #
+	   	println("Adding communities")
+	   	if typeof(posn)!=Bool
+	   		println("Using distances")
+	   	end
+
 	    for (i,town) in enumerate(locale)
 	    #    println("Adding ",town," (population: ",popl[i],")")
 	        #add the intralocale links
@@ -272,12 +277,18 @@
 	    nedges_add = 0
 	    println("Connecting towns")
 	    iter = ProgressBar(1:npl) #everyone loves a good progress bar
+	    
+	    if smalltown
+	        println("Small towns favoured")
+	    end
+	    if richclub
+	        println("Preferential attachment on")
+	    end
 
         #main iteratarion loop nsims simulations
 	    for i in iter
 	        #do one of the following two lines
 	        if smalltown
-	        	println("Small towns favoured")
 	            addlink=Int(floor(minimum([popl[i],tpopl*p*sqrt(popl[i])]))) #biased to small communities -  testing the effect of the hypothesis of more movement in these communities
 	        else
 	            addlink=Int(floor(p*popl[i])) #unbiased
@@ -290,7 +301,6 @@
 	            rrs=rr[edg2[k]]+1:rr[edg2[k]+1]
 	            #do one of the following two lines
 	            if richclub
-	            	println("Preferential attachment on")
 	                edg2k = sample(rrs, Weights(degree(net[rrs]))) #biased by target degree
 	            else
 	                edg2k = rand(collect(rrs))   #random sample of the relevant community
