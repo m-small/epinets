@@ -80,7 +80,7 @@ module EpiSim
         iter = ProgressBar(1:nsims) #everyone loves a good progress bar
 
         #main iteratarion loop nsims simulations
-        for j in iter
+        Threads.@threads for j in iter
             #active contact network is net1 to start
             net=net1
             #initilise the rate parameters
@@ -159,7 +159,7 @@ module EpiSim
         iter = ProgressBar(1:nsims) #everyone loves a good progress bar
 
         #main iteratarion loop nsims simulations
-        for j in iter
+        Threads.@threads for j in iter
             #reinitialise the state vector
             state=Array{Int8,2}(undef,1,pop) #this is a bit wasteful, there must be a better categorical way to do this...
             state[1:pop].=1;
@@ -208,7 +208,7 @@ module EpiSim
 
         iter = ProgressBar(1:nsims) #everyone loves a good progress bar
         #main iteratarion loop nsims simulations
-        for j in iter
+        Threads.@threads for j in iter
             #reinitialise the state vector
             state=Array{Int8,2}(undef,1,pop) #this is a bit wasteful, there must be a better categorical way to do this...
             state[1:pop].=1;
