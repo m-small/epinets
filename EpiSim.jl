@@ -139,6 +139,82 @@ module EpiSim
 
     end #episim
 
+    function episimdays(net1, net2, epiparam, predays::Int64=40, postdays::Int64=80, nsims::Int64=50)
+        #single changepoint model
+        #feth is the threhold to switch between growth and control - replace net1 with net2
+
+        #epidemic parameters
+        pop=epiparam["pop"]         #population - assumed to be a square number
+        p0=epiparam["p0"]           #rate p for first phase
+        p2=epiparam["p2"]           #rate p for the second phase
+        q=epiparam["q"]             #rate q (latency) fixed throughout
+        r0=epiparam["r0"]           #rate r for first phase
+        r2=epiparam["r2"]           #rate r for second phase
+        nseeds=epiparam["nseeds"]   #number of infected nodes to start with
+
+        #initialise and get set to track the various tallies
+        ndays=predays+postdays
+        st=Array{UInt64,2}(undef,ndays,nsims)
+        ex=Array{UInt64,2}(undef,ndays,nsims)
+        fe=Array{UInt64,2}(undef,ndays,nsims)
+        rm=Array{UInt64,2}(undef,ndays,nsims)
+
+        iter = ProgressBar(1:nsims) #everyone loves a good progress bar
+
+        #main iteratarion loop nsims simulations
+        Threads.@threads for j in iter
+            #active contact network is net1 to start
+            net=net1
+            #initilise the rate parameters
+            r=r0
+            p=p0
+
+            #reinitialise the state vector
+            state=Array{Int8,2}(undef,1,pop) #this is a bit wasteful, there must be a better categorical way to do this...
+            state[1:pop].=1;
+            state[rand((1:pop),(1,nseeds))].=2; #seeds should be exposed cases
+
+            i=1
+            notdoneyet=true
+            #loop for a single epidemic time course (total duration predays+postdays)
+            while i<=(predays+postdays)
+
+                #updating the infection states
+                epistep!(state, net, p, q, r)
+
+                #count the respective totals
+                st[i,j] = count(x->x==1, state)
+                ex[i,j] = count(x->x==2, state)
+                fe[i,j] = count(x->x==3, state)
+                rm[i,j] = count(x->x==4, state)
+
+                ##################################################################################
+                #switch network after 300 infections - this is the change-point cludge
+                ##################################################################################
+                inftot = pop-(st[i,j]+ex[i,j])
+                ##################################################################################
+                # switch infection model after predays days
+                # once achieved, the transmission model switches to net2, 2r and p2.
+                ##################################################################################
+                if i==predays   #notdoneyet - we only want to do this ONCE
+                    net=net2 #change network structure
+                    r=r2     #change the removal rate
+                    p=p2     #and the infection rate
+                end
+                ##################################################################################
+                ##################################################################################
+                ##################################################################################
+
+                i += 1  #done one more day
+
+            end
+        end
+
+        return st, ex, fe, rm
+
+    end #episim
+
+
     function episim(net, epiparam, ndays::Int64=180, nsims::Int64=50)
         #no changepoint model
         #feth is the threhold to switch between growth and control - replace net1 with net2

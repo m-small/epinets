@@ -1,3 +1,4 @@
+
 using LightGraphs, Plots, GraphPlot, Compose, Random
 include("ContactModels.jl")
 include("EpiSim.jl")
@@ -6,8 +7,8 @@ wapop=CSV.read("remote-wa.csv", DataFrame)
 
 function similaritytown(df,i,j)
     # similaritytown(df,i,j)
-    # Define a "similarity" between two locations. This code is an ad-hoc rule that is an 
-    # attempt to model the amount of movement between discrete regions. Dataframe df is 
+    # Define a "similarity" between two locations. This code is an ad-hoc rule that is an
+    # attempt to model the amount of movement between discrete regions. Dataframe df is
     # assumed to be in the Orlando format as illustrated above.
     bonus=100  #effectively, the larger the bonus, the more we include non-indigeneos travel.
     x1= Matrix(df[2*i-1:2*i,5:end])# convert(Matrix{Int}, df[2*i-1:2*i,5:end])
@@ -16,6 +17,7 @@ function similaritytown(df,i,j)
     languagesimilarity=x1[:]'*x2[:]        #or not
     regionbonus= (df[2*i,3]==df[2*j,3])*bonus
 end
+
 
 dist=Array{Int,2}(undef,58,58)
 for i in 1:58
@@ -109,7 +111,7 @@ function getbiggestbit(net)
     bigi=0
     bign=0
     Threads.@threads for i in 1:length(cc)
-        if length(cc[i])>bign 
+        if length(cc[i])>bign
             bign=length(cc[i])
             bigi=i
         end
@@ -124,13 +126,13 @@ gplot(Graph(transit),nodelabel=locale) #this should work, but is a bit slow at t
 
 #'reasonable' parameters ################################
 epiparam=Dict()
-epiparam["p0"]=0.2 #a guess - tuned to match observed data 
+epiparam["p0"]=0.2 #a guess - tuned to match observed data
 epiparam["p2"]=1/12 #revised infection rate with distancing measure
 epiparam["q"]=1/7 #"up to" two weeks
 epiparam["r0"]=1/14 #about two weeks for mild, 3-6 for severe
 epiparam["r2"]=1/4 #revised removal rate (now due to testing and isolation)
 #########################################################
-epiparam["nseeds"]=5 #probably too many, consider dropping. 
+epiparam["nseeds"]=5 #probably too many, consider dropping.
 epiparam["pop"]=size(net)[1]
 
 
@@ -138,7 +140,7 @@ ndays=90
 nsims=200
 St,Et,It,Rt = EpiSim.episim(net, epiparam, ndays, nsims)  #no change-point nsims simulations for ndays days
 
-#log scale plot of model growth in infection 
+#log scale plot of model growth in infection
 plot(title="Simulation across WA", ylabel="total infected",yaxis=:log)
 EpiSim.plotquantiles(It+Rt.+1,:yellow,"90% CI",0.45) #need to add one, otherwise log gets upset
 EpiSim.plotquantiles(It+Rt.+1,:red,"50% CI",0.25)
