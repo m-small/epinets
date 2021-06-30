@@ -99,7 +99,7 @@ end
 
 ###############################3
 # Now, this is the clever bit, we will build two connectivity matrices, one with mixing and the other with "lockdown"
-locknet, transit, locale, popl, distrc = buildstate(wapop[1:end-1,:], x -> covidsafe(socialdist(x,0.6),0.8))
+locknet, transit, locale, popl, distrc = buildstate(wapop[1:end-1,:], x -> covidsafe(socialdist(x,0.7),0.8))
 nomixnet, transit, locale, popl, distrc = buildstate(wapop[1:end-1,:], x -> covidsafe(fullmixing(x),0.5))
 mixnet, transit, locale, popl, distrc = buildstate(wapop[1:end-1,:], x -> nomassmix(x))
 fullmixnet, transit, locale, popl, distrc = buildstate(wapop[1:end-1,:], x -> fullmixing(x))
@@ -116,8 +116,8 @@ epiparam["nseeds"]=1 #suppose there is just one person on the lose
 epiparam["pop"]=size(locknet)[1]
 #
 nlock=5
-ndays=90
-nsims=200
+ndays=60
+nsims=500
 
 
 
@@ -141,8 +141,12 @@ function plotqnt(x,y,col,labl,qnt::Float64=0.45)
     plot!(x,mid,grid=false,ribbon=(mid-low,hig-mid),fillalpha=.25,lw=3, seriescolor=col, label=labl)
 end
 
-plot()
-usecol=[:red,:green,:orange,:yellow,:blue,:black,:red,:green,:orange,:yellow,:blue,:black,:red,:green,:orange,:yellow,:blue,:black,:red,:green,:orange,:yellow,:blue,:black,:red,:green,:orange,:yellow,:blue,:black]
-for nlock in [1 4 7 14]
-    plotqnt(1:ndays,infect[nlock],usecol[nlock],"$nlock-day lockdown")
-end
+plotqnt(1:ndays,infect[1],:red,"1-day lockdown")
+plotqnt(1:ndays,infect[4],:orange,"4-day lockdown")
+plotqnt(1:ndays,infect[7],:yellow,"7-day lockdown")
+plotqnt(1:ndays,infect[14],:blue,"14-day lockdown")
+plotqnt(1:ndays,infect[21],:green,"21-day lockdown")
+#plot!(yaxis=:log)
+plot!(y_lims=(0,10))
+
+plot(map(x->sum(x[60,:].>200),infect[:]))
