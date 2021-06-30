@@ -99,7 +99,8 @@ end
 
 ###############################3
 # Now, this is the clever bit, we will build two connectivity matrices, one with mixing and the other with "lockdown"
-nomixnet, transit, locale, popl, distrc = buildstate(wapop[1:end-1,:], x -> covidsafe(nomassmix(x),0.5))
+locknet, transit, locale, popl, distrc = buildstate(wapop[1:end-1,:], x -> covidsafe(socialdist(x,0.6),0.8))
+nomixnet, transit, locale, popl, distrc = buildstate(wapop[1:end-1,:], x -> covidsafe(fullmixing(x),0.5))
 mixnet, transit, locale, popl, distrc = buildstate(wapop[1:end-1,:], x -> nomassmix(x))
 fullmixnet, transit, locale, popl, distrc = buildstate(wapop[1:end-1,:], x -> fullmixing(x))
 
@@ -112,7 +113,7 @@ epiparam["r0"]=1/14 #about two weeks for mild, 3-6 for severe
 epiparam["r2"]=1/4 #revised removal rate (now due to testing and isolation)
 #########################################################
 epiparam["nseeds"]=1 #suppose there is just one person on the lose
-epiparam["pop"]=size(nomixnet)[1]
+epiparam["pop"]=size(locknet)[1]
 #
 nlock=5
 ndays=90
@@ -124,7 +125,7 @@ nsims=200
 #St,Et,It,Rt = EpiSim.episim(net, epiparam, ndays, nsims)  #no change-point nsims simulations for ndays days
 infect=Array{Any,1}(undef,14)
 for nlock in 1:14
-    St,Et,It,Rt = EpiSim.episimdays(nomixnet, mixnet, epiparam, nlock, ndays-nlock, nsims)  #no change-point nsims simulations for ndays days
+    St,Et,It,Rt = EpiSim.episimdays(locknet, nomixnet, epiparam, nlock, ndays-nlock, nsims)  #no change-point nsims simulations for ndays days
     infect[nlock]=It+Rt
 end
 
@@ -142,6 +143,6 @@ end
 
 plot()
 usecol=[:red,:green,:orange,:yellow,:blue,:black,:red,:green,:orange,:yellow,:blue,:black,:red,:green,:orange,:yellow,:blue,:black,:red,:green,:orange,:yellow,:blue,:black,:red,:green,:orange,:yellow,:blue,:black]
-for nlock in [0 1 4 7 14]
-    plotqnt(1:ndays,infect[nlock],usecol[nlock],"$nlock-day lockdownIT")
+for nlock in [1 4 7 14]
+    plotqnt(1:ndays,infect[nlock],usecol[nlock],"$nlock-day lockdown")
 end

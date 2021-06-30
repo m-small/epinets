@@ -24,7 +24,7 @@
 	end
 
 	function limitpop(net,gth)
-	    #prune contact patterns to limit fatherings on net to 
+	    #prune contact patterns to limit fatherings on net to
 	    #no more than gth people. edges are redistributed to preserve mean degree
 	    nlost=0
 	    nedges=ne(net)
@@ -34,13 +34,13 @@
 	        while length(neigh)>gth
 	            rem_edge!(net,vert,rand(neigh))
 	            nlost +=1
-	            neigh=neighbors(net,vert) 
+	            neigh=neighbors(net,vert)
 	        end
 	    end
 	    #redistribute them elsewhere
 	    vert=vertices(net)
 	    for i in 1:nlost #will complain if there are not enough edges to add back in
-	        verts=vert#[degree(net).<(gth-1)] 
+	        verts=vert#[degree(net).<(gth-1)]
 	        v1=rand(verts)
 	        v2=v1
 	        while v2==v1
@@ -74,6 +74,9 @@
 	    if abs(spop^2-pop)>0
 	        spop1=Int(floor(sqrt(pop)))
 	        spop2=Int(ceil(sqrt(pop)))
+			if spop2*spop1>spop
+				spop2=spop2-1
+			end
 	        println("population not square ",pop-spop1*spop2," node(s) isolated")
 	        net=LightGraphs.grid([spop1, spop2], periodic=true)
 	        add_vertices!(net,pop-spop1*spop2)
@@ -141,8 +144,8 @@
 
 	function similaritytown(df,i,j,posn)
 	    # similaritytown(df,i,j)
-	    # Define a "similarity" between two locations. This code is an ad-hoc rule that is an 
-	    # attempt to model the amount of movement between discrete regions. Dataframe df is 
+	    # Define a "similarity" between two locations. This code is an ad-hoc rule that is an
+	    # attempt to model the amount of movement between discrete regions. Dataframe df is
 	    # assumed to be in the "Orlando format" as illustrated above.
 	    bonus1=1000  #effectively, the larger the bonus, the more we include non-indigeneos travel.
 	    bonus2=10   #bonus1 is for towns in the same region, bonus2 for the same LGA
@@ -173,8 +176,8 @@
 
 	function similaritytown(df,i,j)
 	    # similaritytown(df,i,j)
-	    # Define a "similarity" between two locations. This code is an ad-hoc rule that is an 
-	    # attempt to model the amount of movement between discrete regions. Dataframe df is 
+	    # Define a "similarity" between two locations. This code is an ad-hoc rule that is an
+	    # attempt to model the amount of movement between discrete regions. Dataframe df is
 	    # assumed to be in the "Orlando format" as illustrated above.
 	    bonus1=100  #effectively, the larger the bonus, the more we include non-indigeneos travel.
 	    bonus2=10   #bonus1 is for towns in the same region, bonus2 for the same LGA
@@ -231,7 +234,7 @@
 	    #smalltown==true will bias toward travel to/from remote communities, otherwise travel will be predominantly to the largest places
 	    #richclub==true preferences "popular" (highly connected) nodes as travellers
 	    ##############################################################################
-	    # 
+	    #
 	    #extract the data from CSV table
 	    #majorlocalities=58
 	    brk=majorlocalities*2
@@ -270,14 +273,14 @@
 	    end
 	    #################################
 	    # Population connectivity between regions
-	    #    
+	    #
 	    rr=[0; cumsum(popl)]
 	#    tpopl=sum(sqrt.(popl))/length(popl)
 	    tpopl=sum(popl)/sum(sqrt.(popl))
 	    nedges_add = 0
 	    println("Connecting towns")
 	    iter = ProgressBar(1:npl) #everyone loves a good progress bar
-	    
+
 	    if smalltown
 	        println("Small towns favoured")
 	    end
@@ -307,7 +310,7 @@
 	            end
 	            edg2[k] = edg2k
 	        end
-	        #need to do it twice, so that the node degrees don't grow   
+	        #need to do it twice, so that the node degrees don't grow
 	        for k in 1:addlink
 	                    add_edge!(net,edg1[k],edg2[k]) #this is grossly inefficient
 	                    nedges_add += 1
@@ -318,4 +321,3 @@
 	    return net, transit, locale, popl, nedges_add
 	end
 #end #of module
-
