@@ -106,10 +106,10 @@ fullmixnet, transit, locale, popl, distrc = buildstate(wapop[1:end-1,:], x -> fu
 
 #'reasonable' parameters ################################
 epiparam=Dict()
-epiparam["p0"]=0.2 #a guess - tuned to match observed data
-epiparam["p2"]=1/12 #revised infection rate with distancing measure
+epiparam["p0"]=0.1 #a guess - tuned to match observed data
+epiparam["p2"]=0.1 #revised infection rate with distancing measure
 epiparam["q"]=1/7 #"up to" two weeks
-epiparam["r0"]=1/14 #about two weeks for mild, 3-6 for severe
+epiparam["r0"]=1/4 #about two weeks for mild, 3-6 for severe
 epiparam["r2"]=1/4 #revised removal rate (now due to testing and isolation)
 #########################################################
 epiparam["nseeds"]=1 #suppose there is just one person on the lose
