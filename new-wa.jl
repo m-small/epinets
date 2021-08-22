@@ -125,7 +125,7 @@ for ppt in [0.001 0.005 0.01 0.02 0.03 0.04 0.05 0.1]
 	fname="new_remote_p$(Int(ppt*1000))_TT_nomassmix$(Int(vac*100)).jld"
 
 	#save the epidemic data
-	save(fname,"St",St,"Et",Et,"It",It,"Rt",Rt)
+	save(fname,"St",St,"Et",Et,"It",It,"Rt",Rt,"net",net,"transit",transit,"locale",locale,"popl",popl)
 end
 end
 
