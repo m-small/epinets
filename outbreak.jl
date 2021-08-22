@@ -123,8 +123,8 @@ nsims=500
 
 #do something
 #St,Et,It,Rt = EpiSim.episim(net, epiparam, ndays, nsims)  #no change-point nsims simulations for ndays days
-infect=Array{Any,1}(undef,14)
-for nlock in 1:14
+infect=Array{Any,1}(undef,21)
+for nlock in 1:21
     St,Et,It,Rt = EpiSim.episimdays(locknet, nomixnet, epiparam, nlock, ndays-nlock, nsims)  #no change-point nsims simulations for ndays days
     infect[nlock]=It+Rt
 end
@@ -150,3 +150,9 @@ plotqnt(1:ndays,infect[21],:green,"21-day lockdown")
 plot!(y_lims=(0,10))
 
 plot(map(x->sum(x[60,:].>200),infect[:]))
+
+using JLD2
+@save "outbreak_output.jld2" infect
+exit()
+
+)
