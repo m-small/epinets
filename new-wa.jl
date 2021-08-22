@@ -93,6 +93,7 @@ epiparam["pop"]=sum(popl) # =size(net)[1]
 
 for ppt in [0.001 0.005 0.01 0.02 0.03 0.04 0.05 0.1]
 	for vac in [0.3 0.5 0.6 0.7 0.8 0.9 0.95]
+		local popl
 	#build the transition network 
 	#
 	# in here we have parameters for probability of movement and assumed local connectivity structure
