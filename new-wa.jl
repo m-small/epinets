@@ -45,7 +45,7 @@ nr=nr-majorlocalities
 dist=Array{Int,2}(undef,nr,nr)
 for i in 1:nr
     for j in 1:nr
-        dist[i,j]=similaritytown(wapop,i,j,posn)
+        dist[i,j]=similaritytown(Array(wapop),i,j,posn)
     end
 end
 
