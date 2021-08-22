@@ -38,6 +38,7 @@ waloc=waloc2
 popl=popl[rowidx2]
 posn=Array(waloc[:,3:4]);
 
+wapop=Array(wapop)
 #build (presumed) conectivity structure between localities
 (nr,nc)=size(wapop)
 nr=nr-majorlocalities
@@ -45,7 +46,7 @@ nr=nr-majorlocalities
 dist=Array{Int,2}(undef,nr,nr)
 for i in 1:nr
     for j in 1:nr
-        dist[i,j]=similaritytown(Array(wapop),i,j,posn)
+        dist[i,j]=similaritytown(wapop,i,j,posn)
     end
 end
 
